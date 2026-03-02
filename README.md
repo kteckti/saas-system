@@ -60,9 +60,18 @@ OWNER_OPEN_ID=seu_open_id
 ```
 
 ### 3. Instale as dependências
+
+**Recomendado: Use pnpm** (gerenciador de pacotes do projeto)
 ```bash
 pnpm install
 ```
+
+**Alternativa com npm** (se não tiver pnpm instalado):
+```bash
+npm install --legacy-peer-deps
+```
+
+> **Nota**: O projeto utiliza **pnpm** como gerenciador de pacotes padrão. Se usar npm, é necessário o flag `--legacy-peer-deps` para resolver conflitos de versão com o Vite 7.
 
 ### 4. Configure o banco de dados
 ```bash
@@ -254,6 +263,7 @@ pnpm run test
 ## 📝 Scripts Disponíveis
 
 ```bash
+# Com pnpm (recomendado)
 pnpm run dev           # Iniciar servidor de desenvolvimento
 pnpm run build         # Build para produção
 pnpm run start         # Iniciar servidor de produção
@@ -261,6 +271,23 @@ pnpm run check         # Verificar tipos TypeScript
 pnpm run format        # Formatar código
 pnpm run test          # Executar testes
 pnpm run db:push       # Aplicar migrações do banco
+
+# Com npm (alternativa)
+npm run dev --legacy-peer-deps
+npm run build --legacy-peer-deps
+npm run start
+```
+
+### ⚙️ Instalação do pnpm
+
+Se você ainda não tem o pnpm instalado:
+```bash
+npm install -g pnpm
+```
+
+Verifique a instalação:
+```bash
+pnpm --version
 ```
 
 ## 🚀 Deploy em Produção
