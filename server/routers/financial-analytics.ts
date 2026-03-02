@@ -49,16 +49,16 @@ export const financialAnalyticsRouter = router({
         const dailyCashFlow: Record<string, { income: number; expense: number }> = {};
 
         transactionsInRange.forEach((tx) => {
-          const dateKey = tx.transactionDate.toISOString().split("T")[0];
+          const dateKey = tx.transactionDate.toISOString().split("T")[0] ?? "";
           if (!dailyCashFlow[dateKey]) {
             dailyCashFlow[dateKey] = { income: 0, expense: 0 };
           }
 
           const amount = parseFloat(tx.amount as any);
           if (tx.type === "income") {
-            dailyCashFlow[dateKey].income += amount;
+            dailyCashFlow[dateKey]!.income += amount;
           } else if (tx.type === "expense") {
-            dailyCashFlow[dateKey].expense += amount;
+            dailyCashFlow[dateKey]!.expense += amount;
           }
         });
 
@@ -112,26 +112,22 @@ export const financialAnalyticsRouter = router({
         );
         if (!hasAccess) throw new Error("Module not accessible");
 
-        let query = db
+        // Build where conditions
+        const conditions = [
+          eq(transactions.tenantId, ctx.user.tenantId),
+          eq(transactions.type, "expense"),
+          ...(input.startDate && input.endDate
+            ? [
+                gte(transactions.transactionDate, input.startDate),
+                lte(transactions.transactionDate, input.endDate),
+              ]
+            : []),
+        ];
+
+        const expenses = await db
           .select()
           .from(transactions)
-          .where(
-            and(
-              eq(transactions.tenantId, ctx.user.tenantId),
-              eq(transactions.type, "expense")
-            )
-          );
-
-        if (input.startDate && input.endDate) {
-          query = query.where(
-            and(
-              gte(transactions.transactionDate, input.startDate),
-              lte(transactions.transactionDate, input.endDate)
-            )
-          );
-        }
-
-        const expenses = await query;
+          .where(and(...conditions));
 
         // Group by category
         const breakdown: Record<string, number> = {};
@@ -146,13 +142,13 @@ export const financialAnalyticsRouter = router({
             .where(eq(expenseCategories.id, categoryId))
             .limit(1);
 
-          const categoryName = category.length > 0 ? category[0].name : "Uncategorized";
+          const categoryName = category.length > 0 ? category[0]!.name : "Sem categoria";
           const amount = parseFloat(expense.amount as any);
 
           if (!breakdown[categoryName]) {
             breakdown[categoryName] = 0;
           }
-          breakdown[categoryName] += amount;
+          breakdown[categoryName]! += amount;
         }
 
         return Object.entries(breakdown).map(([category, amount]) => ({
@@ -187,26 +183,22 @@ export const financialAnalyticsRouter = router({
         );
         if (!hasAccess) throw new Error("Module not accessible");
 
-        let query = db
+        // Build where conditions
+        const conditions = [
+          eq(transactions.tenantId, ctx.user.tenantId),
+          eq(transactions.type, "income"),
+          ...(input.startDate && input.endDate
+            ? [
+                gte(transactions.transactionDate, input.startDate),
+                lte(transactions.transactionDate, input.endDate),
+              ]
+            : []),
+        ];
+
+        const revenues = await db
           .select()
           .from(transactions)
-          .where(
-            and(
-              eq(transactions.tenantId, ctx.user.tenantId),
-              eq(transactions.type, "income")
-            )
-          );
-
-        if (input.startDate && input.endDate) {
-          query = query.where(
-            and(
-              gte(transactions.transactionDate, input.startDate),
-              lte(transactions.transactionDate, input.endDate)
-            )
-          );
-        }
-
-        const revenues = await query;
+          .where(and(...conditions));
 
         // Group by category
         const breakdown: Record<string, number> = {};
@@ -221,13 +213,13 @@ export const financialAnalyticsRouter = router({
             .where(eq(revenueCategories.id, categoryId))
             .limit(1);
 
-          const categoryName = category.length > 0 ? category[0].name : "Uncategorized";
+          const categoryName = category.length > 0 ? category[0]!.name : "Sem categoria";
           const amount = parseFloat(revenue.amount as any);
 
           if (!breakdown[categoryName]) {
             breakdown[categoryName] = 0;
           }
-          breakdown[categoryName] += amount;
+          breakdown[categoryName]! += amount;
         }
 
         return Object.entries(breakdown).map(([category, amount]) => ({

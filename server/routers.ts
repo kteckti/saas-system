@@ -1,6 +1,7 @@
 import { systemRouter } from "./_core/systemRouter";
 import { router } from "./_core/trpc";
 import { authRouter } from "./routers/auth";
+import { authLocalRouter } from "./routers/auth-local";
 import { organizationsRouter } from "./routers/organizations";
 import { financialRouter } from "./routers/financial";
 import { crmRouter } from "./routers/crm";
@@ -9,10 +10,14 @@ import { adminRouter } from "./routers/admin";
 import { financialAnalyticsRouter } from "./routers/financial-analytics";
 import { crmAnalyticsRouter } from "./routers/crm-analytics";
 import { inventoryAnalyticsRouter } from "./routers/inventory-analytics";
+import { crmAssignmentRouter } from "./routers/crm-assignment";
+import { inventoryBarcodeRouter } from "./routers/inventory-barcode";
+import { dashboardWidgetsRouter } from "./routers/dashboard-widgets";
 
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
+  authLocal: authLocalRouter,
   organizations: organizationsRouter,
   financial: financialRouter,
   crm: crmRouter,
@@ -21,9 +26,26 @@ export const appRouter = router({
   financialAnalytics: financialAnalyticsRouter,
   crmAnalytics: crmAnalyticsRouter,
   inventoryAnalytics: inventoryAnalyticsRouter,
+  crmAssignment: crmAssignmentRouter,
+  inventoryBarcode: inventoryBarcodeRouter,
+  dashboardWidgets: dashboardWidgetsRouter,
 });
 
 export type AppRouter = typeof appRouter;
 
 // Export routers for potential direct usage
-export { authRouter, organizationsRouter, financialRouter, crmRouter, inventoryRouter, adminRouter, financialAnalyticsRouter, crmAnalyticsRouter, inventoryAnalyticsRouter };
+export {
+  authRouter,
+  authLocalRouter,
+  organizationsRouter,
+  financialRouter,
+  crmRouter,
+  inventoryRouter,
+  adminRouter,
+  financialAnalyticsRouter,
+  crmAnalyticsRouter,
+  inventoryAnalyticsRouter,
+  crmAssignmentRouter,
+  inventoryBarcodeRouter,
+  dashboardWidgetsRouter,
+};

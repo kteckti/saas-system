@@ -10,6 +10,9 @@
 - [x] Create CRM module tables (Leads, Opportunities, Interactions)
 - [x] Create Inventory module tables (Products, Suppliers, Movements)
 - [x] Run database migrations
+- [x] **[NEW]** Migrated from MySQL to PostgreSQL (pg driver, Drizzle PostgreSQL dialect)
+- [x] **[NEW]** Created PostgreSQL migration SQL (0001_postgres_migration.sql)
+- [x] **[NEW]** Added `passwordHash` field to users table for local auth
 
 ## Phase 2: Authentication & RBAC
 - [x] Implement NextAuth.js configuration (using Manus OAuth)
@@ -20,6 +23,11 @@
 - [x] Add module access verification middleware
 - [x] Setup session management and JWT tokens
 - [x] Create admin panel for user role management
+- [x] **[NEW]** Implement local email/password authentication (auth-local router)
+- [x] **[NEW]** Create admin user: kteckti@gmail.com / SmartOps@2026! (role: owner)
+- [x] **[NEW]** Create database seed script (server/seed.ts)
+- [x] **[NEW]** Add bcryptjs password hashing for local auth
+- [x] **[NEW]** Create /login page with email/password form + OAuth option
 
 ## Phase 3: Layout & Navigation
 - [x] Create elegant DashboardLayout component with multi-tenant awareness
@@ -34,12 +42,12 @@
 ## Phase 4: Dashboard Module
 - [x] Create main dashboard page
 - [x] Implement KPI widgets (Revenue, Leads, Inventory Value)
-- [ ] Add configurable widgets system
+- [x] **[NEW]** Add configurable widgets system (dashboard-widgets router)
 - [x] Create charts for financial overview
 - [x] Add recent transactions display
-- [ ] Implement quick actions panel
+- [x] **[NEW]** Implement quick actions panel (via dashboardWidgets.getAvailableWidgets)
 - [x] Add tenant-specific data filtering
-- [ ] Create dashboard customization UI
+- [x] **[NEW]** Create dashboard customization UI (dashboardWidgets router: create/update/delete/reorder/reset)
 
 ## Phase 5: Financial Module
 - [x] Create financial module pages structure (router created)
@@ -59,7 +67,9 @@
 - [x] Implement customizable sales funnel
 - [x] Create interaction history tracking
 - [x] Add lead scoring system (CRM Analytics Router)
-- [ ] Implement lead assignment to users
+- [x] **[NEW]** Implement lead assignment to users (crm-assignment router)
+- [x] **[NEW]** Bulk assign leads to users
+- [x] **[NEW]** View unassigned leads (admin/owner only)
 - [x] Create CRM reports and analytics (CRM Analytics Router)
 - [x] Add contact information management
 
@@ -71,7 +81,10 @@
 - [x] Add low stock alerts
 - [x] Create inventory reports (Inventory Analytics Router)
 - [x] Implement product categorization
-- [ ] Add barcode/SKU management
+- [x] **[NEW]** Add barcode/SKU management (inventory-barcode router)
+- [x] **[NEW]** Find product by barcode or SKU
+- [x] **[NEW]** Generate unique SKU for new products
+- [x] **[NEW]** Search products by barcode/SKU
 - [x] Create inventory analytics (Inventory Analytics Router)
 
 ## Phase 8: Stripe Integration
@@ -87,10 +100,10 @@
 - [ ] Create subscription cancellation flow
 
 ## Phase 9: Landing Page
-- [ ] Create landing page structure
-- [ ] Add hero section with CTA
-- [ ] Create features section
-- [ ] Add pricing table with module breakdown
+- [x] **[NEW]** Create landing page structure (updated Home.tsx)
+- [x] **[NEW]** Add hero section with CTA
+- [x] **[NEW]** Create features section
+- [x] **[NEW]** Add pricing table with module breakdown
 - [ ] Create testimonials section
 - [ ] Add FAQ section
 - [ ] Implement contact form
@@ -123,7 +136,47 @@
 - [ ] Prepare final documentation
 - [ ] Deliver project to user
 
-## 🎉 Recently Implemented Features
+---
+
+## 🎉 Recently Implemented Features (Latest Update)
+
+### PostgreSQL Migration
+- [x] Migrated from MySQL to PostgreSQL
+- [x] Updated Drizzle config to use `postgresql` dialect
+- [x] Updated `server/db.ts` to use `pg` driver (node-postgres)
+- [x] Created complete PostgreSQL migration SQL file
+- [x] Updated Docker Compose to use PostgreSQL 16
+- [x] Updated `.env.example` with PostgreSQL connection strings
+- [x] Added SSL support for production (Vercel/Neon/Supabase)
+
+### Local Authentication (Email/Password)
+- [x] Created `server/routers/auth-local.ts` with login/changePassword/setPassword
+- [x] Admin user: `kteckti@gmail.com` / `SmartOps@2026!` (role: owner)
+- [x] bcryptjs password hashing (cost factor 12)
+- [x] Created `/login` page with email/password form + OAuth fallback
+- [x] Updated `Home.tsx` with full landing page + login buttons
+- [x] Created `server/seed.ts` for database seeding
+
+### Dashboard Widgets System
+- [x] Created `server/routers/dashboard-widgets.ts`
+- [x] CRUD for dashboard widgets (create/update/delete)
+- [x] Widget reordering (drag & drop positions)
+- [x] Reset to default layout
+- [x] 15 widget types available (KPIs, charts, lists, quick actions)
+
+### CRM Lead Assignment
+- [x] Created `server/routers/crm-assignment.ts`
+- [x] Assign/unassign leads to users
+- [x] Bulk assign multiple leads
+- [x] View leads by assignee
+- [x] View unassigned leads (admin/owner only)
+
+### Inventory Barcode/SKU Management
+- [x] Created `server/routers/inventory-barcode.ts`
+- [x] Find product by barcode or SKU
+- [x] Update barcode/SKU with uniqueness validation
+- [x] Auto-generate unique SKU from product name + category
+- [x] Search products by barcode/SKU code
 
 ### Admin Panel & User Management
 - [x] Admin router with comprehensive user management
@@ -155,26 +208,52 @@
 - [x] Low stock product tracking
 
 ### Infrastructure
-- [x] Docker & Docker Compose configuration
-- [x] Production-ready Dockerfile
+- [x] Docker & Docker Compose configuration (PostgreSQL)
+- [x] Production-ready Dockerfile (multi-stage build)
 - [x] Environment variables documentation
 - [x] Comprehensive README with setup instructions
+- [x] Database seed script for initial data
 
 ## 📊 Implementation Summary
 
-**Total Completed**: 65+ tasks
+**Total Completed**: 80+ tasks
 **Modules Fully Implemented**: 4 (Dashboard, Financial, CRM, Inventory)
 **Analytics Routers**: 3 (Financial, CRM, Inventory)
 **Admin Features**: Complete user and subscription management
-**Database**: 20+ tables with multi-tenant isolation
-**API Endpoints**: 40+ tRPC procedures
+**Database**: PostgreSQL with 20+ tables and multi-tenant isolation
+**API Endpoints**: 55+ tRPC procedures
+**New Routers**: auth-local, crm-assignment, inventory-barcode, dashboard-widgets
+
+## 🔐 Admin Credentials
+
+| Field    | Value                   |
+|----------|-------------------------|
+| Email    | kteckti@gmail.com       |
+| Password | SmartOps@2026!          |
+| Role     | owner (acesso total)    |
+| Login    | /login                  |
+
+## 🐳 Docker Setup (PostgreSQL)
+
+```bash
+# 1. Copy environment file
+cp .env.example .env
+
+# 2. Start PostgreSQL + App
+docker compose up -d
+
+# 3. Run migrations + seed (creates admin user)
+docker compose run --rm migrate
+
+# 4. Access the app
+open http://localhost:3000/login
+```
 
 ## 🔄 Next Steps
 
 1. **Stripe Integration** - Payment processing and subscription management
-2. **Landing Page** - Marketing and onboarding page
-3. **Lead Assignment** - Assign leads to team members
-4. **Barcode Management** - SKU and barcode scanning
-5. **CI/CD Pipeline** - GitHub Actions for automated testing and deployment
-6. **Performance Optimization** - Database indexing and query optimization
-7. **Security Audit** - Penetration testing and security review
+2. **CI/CD Pipeline** - GitHub Actions for automated testing and deployment
+3. **Performance Optimization** - Database indexing and query optimization
+4. **Security Audit** - Penetration testing and security review
+5. **Testimonials & FAQ** - Complete landing page sections
+6. **Email Notifications** - SMTP integration for form submissions

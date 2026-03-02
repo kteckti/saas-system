@@ -1,29 +1,112 @@
 version: '3.8'
 
+# ============================================================================
+# SmartOps SaaS - Docker Compose
+# PostgreSQL + Application Stack
+# ============================================================================
+
 services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
   db:
-    image: mysql:8.0
+    image: postgres:16-alpine
     container_name: smartops-db
-    restart: always
+    restart: unless-stopped
     environment:
-      MYSQL_DATABASE: smartops
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_DB: smartops
+      POSTGRES_USER: smartops
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SmartOps@2026!}
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartops -d smartops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartops-network
 
+  # ============================================================================
+  # SmartOps Application
+  # ============================================================================
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: smartops-app
-    restart: always
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     environment:
-      - DATABASE_URL=mysql://root:root@db:3306/smartops
-      - NODE_ENV=production
-    depends_on:
-      - db
+      # Database
+      DATABASE_URL: postgresql://smartops:${POSTGRES_PASSWORD:-SmartOps@2026!}@db:5432/smartops
 
+      # Application
+      NODE_ENV: production
+      PORT: 3000
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-min-32-chars}
+
+      # OAuth (Manus) - optional
+      VITE_APP_ID: ${VITE_APP_ID:-}
+      VITE_OAUTH_PORTAL_URL: ${VITE_OAUTH_PORTAL_URL:-}
+      OAUTH_SERVER_URL: ${OAUTH_SERVER_URL:-}
+      OWNER_OPEN_ID: ${OWNER_OPEN_ID:-local_admin_kteckti}
+
+      # Stripe - optional
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartops-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================================================
+  # Database Migration & Seed (runs once on startup)
+  # ============================================================================
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartops-migrate
+    environment:
+      DATABASE_URL: postgresql://smartops:${POSTGRES_PASSWORD:-SmartOps@2026!}@db:5432/smartops
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-min-32-chars}
+      OWNER_OPEN_ID: ${OWNER_OPEN_ID:-local_admin_kteckti}
+    command: sh -c "pnpm run db:push && pnpm run db:seed"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartops-network
+    restart: "no"
+
+# ============================================================================
+# Volumes
+# ============================================================================
 volumes:
-  mysql_data:
+  postgres_data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  smartops-network:
+    driver: bridge

@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { eq, and, desc, gte } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import {
   leads,
   opportunities,
@@ -9,6 +9,14 @@ import {
   pipelineStages,
 } from "../../drizzle/schema";
 import { canAccessModule } from "../rbac";
+
+const STATUS_SCORES: Record<string, number> = {
+  new: 10,
+  contacted: 25,
+  qualified: 50,
+  lost: 0,
+  converted: 100,
+};
 
 export const crmAnalyticsRouter = router({
   /**
@@ -98,6 +106,8 @@ export const crmAnalyticsRouter = router({
 
         if (!lead.length) throw new Error("Lead not found");
 
+        const leadData = lead[0]!;
+
         // Get interactions for this lead
         const leadInteractions = await db
           .select()
@@ -113,21 +123,14 @@ export const crmAnalyticsRouter = router({
         let score = 0;
 
         // Base score by status
-        const statusScores: Record<string, number> = {
-          new: 10,
-          contacted: 25,
-          qualified: 50,
-          lost: 0,
-          converted: 100,
-        };
-        score += statusScores[lead[0].status] || 0;
+        score += STATUS_SCORES[String(leadData.status)] ?? 0;
 
         // Bonus for interactions
         score += Math.min(leadInteractions.length * 5, 30);
 
         // Bonus for company and position info
-        if (lead[0].company) score += 10;
-        if (lead[0].position) score += 10;
+        if (leadData.company) score += 10;
+        if (leadData.position) score += 10;
 
         // Bonus for recent interactions (within last 7 days)
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -264,7 +267,7 @@ export const crmAnalyticsRouter = router({
       // Calculate scores for all leads
       const leadsWithScores = await Promise.all(
         allLeads.map(async (lead) => {
-          const interactions = await db
+          const leadInteractions = await db
             .select()
             .from(interactions)
             .where(
@@ -275,20 +278,13 @@ export const crmAnalyticsRouter = router({
             );
 
           let score = 0;
-          const statusScores: Record<string, number> = {
-            new: 10,
-            contacted: 25,
-            qualified: 50,
-            lost: 0,
-            converted: 100,
-          };
-          score += statusScores[lead.status] || 0;
-          score += Math.min(interactions.length * 5, 30);
+          score += STATUS_SCORES[String(lead.status)] ?? 0;
+          score += Math.min(leadInteractions.length * 5, 30);
           if (lead.company) score += 10;
           if (lead.position) score += 10;
 
           const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-          const recentInteractions = interactions.filter(
+          const recentInteractions = leadInteractions.filter(
             (i) => i.createdAt > sevenDaysAgo
           ).length;
           score += Math.min(recentInteractions * 10, 20);
@@ -297,7 +293,7 @@ export const crmAnalyticsRouter = router({
           return {
             ...lead,
             calculatedScore: score,
-            interactionCount: interactions.length,
+            interactionCount: leadInteractions.length,
           };
         })
       );

@@ -39,12 +39,20 @@ export default function Home() {
             </div>
             <span className="font-bold text-lg">SmartOps</span>
           </div>
-          <Button
-            onClick={() => (window.location.href = getLoginUrl())}
-            variant="default"
-          >
-            Entrar
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/login")}
+            >
+              Login com Email
+            </Button>
+            <Button
+              onClick={() => (window.location.href = getLoginUrl())}
+              variant="default"
+            >
+              Entrar com OAuth
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -66,13 +74,17 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => (window.location.href = getLoginUrl())}
+              onClick={() => navigate("/login")}
               className="shadow-lg hover:shadow-xl transition-all"
             >
-              Começar Gratuitamente <ArrowRight className="ml-2 w-4 h-4" />
+              Começar Agora <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
-            <Button size="lg" variant="outline">
-              Ver Demo
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => (window.location.href = getLoginUrl())}
+            >
+              Entrar com OAuth
             </Button>
           </div>
 
@@ -266,7 +278,7 @@ export default function Home() {
           </p>
           <Button
             size="lg"
-            onClick={() => (window.location.href = getLoginUrl())}
+            onClick={() => navigate("/login")}
             className="shadow-lg hover:shadow-xl transition-all"
           >
             Começar Agora <ArrowRight className="ml-2 w-4 h-4" />
@@ -285,7 +297,7 @@ export default function Home() {
           </p>
           <Button
             size="lg"
-            onClick={() => (window.location.href = getLoginUrl())}
+            onClick={() => navigate("/login")}
             className="shadow-lg hover:shadow-xl transition-all"
           >
             Comece Seu Trial Gratuito <ArrowRight className="ml-2 w-4 h-4" />

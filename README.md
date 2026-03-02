@@ -1,109 +1,113 @@
 # SmartOps SaaS - Sistema Multi-Tenant Completo
 
-Um sistema SaaS robusto e escalável construído com **React**, **TypeScript**, **tRPC**, **Drizzle ORM** e **MySQL**. Inclui módulos de **Dashboard**, **Financeiro**, **CRM** e **Inventário** com suporte completo a multi-tenant.
+Um sistema SaaS robusto e escalável construído com **React**, **TypeScript**, **tRPC**, **Drizzle ORM** e **PostgreSQL**. Inclui módulos de **Dashboard**, **Financeiro**, **CRM** e **Inventário** com suporte completo a multi-tenant.
+
+## 🔐 Credenciais de Acesso (Administrador)
+
+| Campo    | Valor                    |
+|----------|--------------------------|
+| Email    | kteckti@gmail.com        |
+| Senha    | SmartOps@2026!           |
+| Role     | owner (acesso total)     |
+| URL      | http://localhost:3000/login |
+
+> **Importante:** Execute `docker compose run --rm migrate` após subir o Docker para criar as tabelas e o usuário admin automaticamente.
+
+## 🚀 Início Rápido (Docker)
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/kteckti/saas-system.git
+cd saas-system
+
+# 2. Configure as variáveis de ambiente
+cp .env.example .env
+# As configurações padrão já funcionam com Docker
+
+# 3. Suba o PostgreSQL + Aplicação
+docker compose up -d
+
+# 4. Execute as migrações e crie o usuário admin
+docker compose run --rm migrate
+
+# 5. Acesse o sistema
+open http://localhost:3000/login
+```
+
+## 🛠️ Desenvolvimento Local
+
+```bash
+# Pré-requisitos: Node.js 22+, pnpm, PostgreSQL 16+
+
+# 1. Instale as dependências
+pnpm install
+
+# 2. Configure o banco PostgreSQL local
+# Crie um banco chamado 'smartops' no PostgreSQL
+# Edite DATABASE_URL no .env
+
+# 3. Execute as migrações
+pnpm run db:push
+
+# 4. Crie o usuário admin
+pnpm run db:seed
+
+# 5. Inicie o servidor de desenvolvimento
+pnpm run dev
+```
 
 ## 🚀 Características Principais
 
 ### Autenticação & RBAC
-- ✅ Autenticação via OAuth (Manus)
-- ✅ Sistema de Roles (Owner, Admin, User)
-- ✅ Controle de acesso baseado em papéis
-- ✅ Isolamento de dados multi-tenant
+- Login local com email/senha (bcryptjs, JWT)
+- Autenticação via OAuth (Manus) — opcional
+- Sistema de Roles (Owner, Admin, User)
+- Controle de acesso baseado em papéis
+- Isolamento de dados multi-tenant
 
 ### Módulos Implementados
-- ✅ **Dashboard**: KPIs, widgets configuráveis, visão geral do negócio
-- ✅ **Financeiro**: Contas, transações, categorias, contas a pagar/receber, relatórios
-- ✅ **CRM**: Leads, oportunidades, interações, pipeline de vendas, lead scoring
-- ✅ **Inventário**: Produtos, fornecedores, movimentações, alertas de estoque
+- **Dashboard**: KPIs, widgets configuráveis, visão geral do negócio
+- **Financeiro**: Contas, transações, categorias, contas a pagar/receber, relatórios
+- **CRM**: Leads, oportunidades, interações, pipeline de vendas, lead scoring, atribuição de leads
+- **Inventário**: Produtos, fornecedores, movimentações, alertas de estoque, gestão barcode/SKU
 
 ### Analytics & Relatórios
-- ✅ Cash flow visualization
-- ✅ Análise de despesas e receitas por categoria
-- ✅ Pipeline de vendas com probabilidade
-- ✅ Lead scoring automático
-- ✅ Relatórios de inventário e rotatividade
+- Cash flow visualization
+- Análise de despesas e receitas por categoria
+- Pipeline de vendas com probabilidade
+- Lead scoring automático
+- Relatórios de inventário e rotatividade
 
 ### Gerenciamento Administrativo
-- ✅ Painel administrativo (/admin)
-- ✅ Gerenciamento de usuários e roles
-- ✅ Histórico de pagamentos
-- ✅ Logs de auditoria
-- ✅ Extensão de período de trial
+- Painel administrativo
+- Gerenciamento de usuários e roles
+- Histórico de pagamentos
+- Logs de auditoria
+- Extensão de período de trial
 
-## 📋 Pré-requisitos
+## 🗄️ Banco de Dados (PostgreSQL)
 
-- Node.js 22+
-- Docker & Docker Compose
-- MySQL 8.0+
-- pnpm (recomendado)
+O projeto usa **PostgreSQL 16** como banco de dados principal.
 
-## 🛠️ Instalação Local
+### Configuração Local
 
-### 1. Clone o repositório
-```bash
-git clone https://github.com/kteckti/saas-system.git
-cd saas-system
-```
-
-### 2. Configure as variáveis de ambiente
-```bash
-cp .env.example .env
-```
-
-Edite o arquivo `.env` com suas configurações:
 ```env
-DATABASE_URL=mysql://root:root@localhost:3306/smartops
-NODE_ENV=development
-MANUS_OAUTH_ID=seu_id_oauth
-MANUS_OAUTH_SECRET=seu_secret_oauth
-OWNER_OPEN_ID=seu_open_id
+DATABASE_URL=postgresql://smartops:SmartOps@2026!@localhost:5432/smartops
 ```
 
-### 3. Instale as dependências
+### Produção (Vercel/Neon/Supabase)
 
-**Recomendado: Use pnpm** (gerenciador de pacotes do projeto)
+```env
+DATABASE_URL=postgresql://user:password@host:5432/smartops?sslmode=require
+```
+
+### Comandos
+
 ```bash
-pnpm install
-```
-
-**Alternativa com npm** (se não tiver pnpm instalado):
-```bash
-npm install --legacy-peer-deps
-```
-
-> **Nota**: O projeto utiliza **pnpm** como gerenciador de pacotes padrão. Se usar npm, é necessário o flag `--legacy-peer-deps` para resolver conflitos de versão com o Vite 7.
-
-### 4. Configure o banco de dados
-```bash
-pnpm run db:push
-```
-
-### 5. Inicie o servidor de desenvolvimento
-```bash
-pnpm run dev
-```
-
-A aplicação estará disponível em `http://localhost:3000`
-
-## 🐳 Deployment com Docker
-
-### 1. Build da imagem Docker
-```bash
-docker build -t smartops:latest .
-```
-
-### 2. Execute com Docker Compose
-```bash
-docker-compose up -d
-```
-
-Isso iniciará:
-- **MySQL**: Porta 3306
-- **Aplicação**: Porta 3000
-
-### 3. Acesse a aplicação
-```
-http://localhost:3000
+pnpm run db:push    # Gera e aplica migrações
+pnpm run db:seed    # Cria dados iniciais (admin user, módulos)
+pnpm run db:studio  # Abre o Drizzle Studio (GUI do banco)
+pnpm run db:reset   # Reseta e recria o banco
 ```
 
 ## 📁 Estrutura do Projeto
@@ -111,15 +115,14 @@ http://localhost:3000
 ```
 saas-system/
 ├── client/                 # Frontend React
-│   ├── src/
-│   │   ├── components/    # Componentes React
-│   │   ├── pages/         # Páginas da aplicação
-│   │   ├── hooks/         # Custom hooks
-│   │   └── lib/           # Utilitários
-│   └── index.html
-├── server/                 # Backend Node.js
-│   ├── routers/           # tRPC routers
-│   │   ├── auth.ts
+│   └── src/
+│       ├── pages/          # Home, Login, Dashboard, Settings
+│       ├── _core/          # Hooks, contextos, utilitários
+│       └── components/     # Componentes UI (shadcn/ui)
+├── server/                 # Backend Express + tRPC
+│   ├── routers/            # Routers tRPC por módulo
+│   │   ├── auth.ts         # OAuth auth
+│   │   ├── auth-local.ts   # Email/senha auth (NOVO)
 │   │   ├── organizations.ts
 │   │   ├── financial.ts
 │   │   ├── crm.ts
@@ -127,216 +130,124 @@ saas-system/
 │   │   ├── admin.ts
 │   │   ├── financial-analytics.ts
 │   │   ├── crm-analytics.ts
-│   │   └── inventory-analytics.ts
-│   ├── _core/             # Core utilities
-│   └── middleware/        # Middlewares
-├── drizzle/               # Schema e migrações
-│   ├── schema.ts          # Definição do banco
-│   └── migrations/        # Histórico de migrações
-├── shared/                # Código compartilhado
-├── docker-compose.yml     # Configuração Docker
-├── Dockerfile             # Imagem Docker
-└── package.json           # Dependências
+│   │   ├── crm-assignment.ts    # Atribuição de leads (NOVO)
+│   │   ├── inventory-analytics.ts
+│   │   ├── inventory-barcode.ts # Barcode/SKU (NOVO)
+│   │   └── dashboard-widgets.ts # Widgets (NOVO)
+│   ├── _core/              # SDK, contexto, env, OAuth
+│   ├── db.ts               # Conexão PostgreSQL
+│   ├── rbac.ts             # Sistema de permissões
+│   └── seed.ts             # Script de seed (NOVO)
+├── drizzle/                # Schema e migrações
+│   ├── schema.ts           # Schema PostgreSQL completo
+│   ├── relations.ts        # Relações entre tabelas
+│   └── 0001_postgres_migration.sql  # Migração SQL (NOVO)
+├── Dockerfile              # Build multi-stage
+├── docker-compose.yml      # PostgreSQL 16 + App
+└── .env.example            # Variáveis de ambiente
 ```
 
-## 🔌 API Endpoints (tRPC)
+## 📦 Módulos
 
-### Autenticação
-- `auth.me` - Obter usuário atual
-- `auth.logout` - Fazer logout
-- `auth.getCurrentOrganization` - Obter organização atual
-- `auth.getOrganizationUsers` - Listar usuários da organização
-- `auth.updateUserRole` - Atualizar role do usuário
-- `auth.canAccessModule` - Verificar acesso ao módulo
-- `auth.getActiveModules` - Obter módulos ativos
+| Módulo      | Slug        | Preço/mês | Funcionalidades |
+|-------------|-------------|-----------|-----------------|
+| Dashboard   | dashboard   | Grátis    | KPIs, widgets, analytics |
+| Financeiro  | financial   | R$ 99     | Transações, contas, relatórios |
+| CRM         | crm         | R$ 149    | Leads, pipeline, interações |
+| Estoque     | inventory   | R$ 129    | Produtos, fornecedores, alertas |
 
-### Administração
-- `admin.getOrganizationUsers` - Listar usuários
-- `admin.updateUserRole` - Atualizar role
-- `admin.updateUserStatus` - Atualizar status
-- `admin.getSubscription` - Obter informações de assinatura
-- `admin.updateSubscriptionStatus` - Atualizar status da assinatura
-- `admin.getBillingHistory` - Histórico de pagamentos
-- `admin.getAuditLogs` - Logs de auditoria
-- `admin.extendTrialPeriod` - Estender período de trial
+## 👥 RBAC (Controle de Acesso)
 
-### Financeiro
-- `financial.getAccounts` - Listar contas
-- `financial.createAccount` - Criar conta
-- `financial.getTransactions` - Listar transações
-- `financial.createTransaction` - Criar transação
-- `financial.getExpenseCategories` - Categorias de despesa
-- `financial.getRevenueCategories` - Categorias de receita
-- `financial.getAccountsPayable` - Contas a pagar
-- `financial.getAccountsReceivable` - Contas a receber
-- `financial.getSummary` - Resumo financeiro
+| Role  | Permissões |
+|-------|------------|
+| owner | Tudo: gerenciar organização, usuários, módulos, billing |
+| admin | Gerenciar usuários, configurações, analytics |
+| user  | Acessar módulos atribuídos, analytics básico |
 
-### Analytics Financeiro
-- `financialAnalytics.getCashFlow` - Fluxo de caixa
-- `financialAnalytics.getExpenseBreakdown` - Análise de despesas
-- `financialAnalytics.getRevenueBreakdown` - Análise de receitas
-- `financialAnalytics.getFinancialReport` - Relatório financeiro
+## 🐳 Docker Compose
 
-### CRM
-- `crm.getLeads` - Listar leads
-- `crm.createLead` - Criar lead
-- `crm.getOpportunities` - Listar oportunidades
-- `crm.createOpportunity` - Criar oportunidade
-- `crm.getInteractions` - Interações de um lead
-- `crm.createInteraction` - Registrar interação
-- `crm.getPipelineStages` - Estágios do pipeline
-- `crm.getSummary` - Resumo do CRM
-
-### Analytics CRM
-- `crmAnalytics.getSalesPipeline` - Visualização do pipeline
-- `crmAnalytics.calculateLeadScore` - Calcular score do lead
-- `crmAnalytics.getCRMReport` - Relatório do CRM
-- `crmAnalytics.getLeadScoringInsights` - Insights de scoring
-
-### Inventário
-- `inventory.getProducts` - Listar produtos
-- `inventory.createProduct` - Criar produto
-- `inventory.getSuppliers` - Listar fornecedores
-- `inventory.createSupplier` - Criar fornecedor
-- `inventory.recordMovement` - Registrar movimentação
-- `inventory.getMovements` - Listar movimentações
-- `inventory.getLowStockAlerts` - Alertas de estoque baixo
-- `inventory.getSummary` - Resumo de inventário
-
-### Analytics Inventário
-- `inventoryAnalytics.getInventoryReport` - Relatório de inventário
-- `inventoryAnalytics.getMovementAnalytics` - Análise de movimentações
-- `inventoryAnalytics.getStockAlertsSummary` - Resumo de alertas
-- `inventoryAnalytics.getInventoryTurnover` - Rotatividade de inventário
-
-## 🔐 Segurança
-
-- ✅ Isolamento de dados multi-tenant em todas as queries
-- ✅ Validação de permissões em todos os endpoints
-- ✅ Proteção contra SQL injection com Drizzle ORM
-- ✅ Autenticação obrigatória para rotas protegidas
-- ✅ Logs de auditoria para ações importantes
-- ✅ Controle de acesso baseado em roles
-
-## 📊 Schema do Banco de Dados
-
-### Tabelas Principais
-- `organizations` - Tenants/Organizações
-- `users` - Usuários com roles
-- `modules` - Módulos disponíveis
-- `tenantModules` - Módulos ativos por tenant
-- `subscriptions` - Informações de assinatura
-- `invoices` - Histórico de faturas
-
-### Tabelas Financeiras
-- `financialAccounts` - Contas bancárias/caixa
-- `transactions` - Transações financeiras
-- `expenseCategories` - Categorias de despesa
-- `revenueCategories` - Categorias de receita
-- `accountsPayable` - Contas a pagar
-- `accountsReceivable` - Contas a receber
-
-### Tabelas CRM
-- `leads` - Leads/Prospects
-- `opportunities` - Oportunidades de venda
-- `interactions` - Histórico de interações
-- `pipelineStages` - Estágios do pipeline
-
-### Tabelas Inventário
-- `products` - Produtos
-- `suppliers` - Fornecedores
-- `inventoryMovements` - Movimentações
-- `stockAlerts` - Alertas de estoque
-
-## 🧪 Testes
-
-```bash
-# Executar testes
-pnpm run test
-
-# Testes inclusos:
-# - Autenticação e isolamento multi-tenant
-# - Sistema RBAC
-# - Cálculos financeiros
+```yaml
+services:
+  db:      # PostgreSQL 16
+  app:     # SmartOps Application
+  migrate: # Migrations + Seed (runs once)
 ```
+
+## 🌐 Deploy no Vercel
+
+1. Crie um banco PostgreSQL no [Neon](https://neon.tech) ou [Supabase](https://supabase.com)
+2. Configure as variáveis de ambiente no Vercel:
+   ```
+   DATABASE_URL=postgresql://...?sslmode=require
+   JWT_SECRET=your-secret-min-32-chars
+   OWNER_OPEN_ID=local_admin_kteckti
+   ```
+3. Execute o seed após o deploy:
+   ```bash
+   DATABASE_URL=postgresql://... pnpm run db:seed
+   ```
+
+## 📡 API (tRPC Routers)
+
+| Router               | Descrição |
+|----------------------|-----------|
+| `auth`               | Autenticação OAuth, me, logout |
+| `authLocal`          | Login email/senha, alterar senha |
+| `organizations`      | Gestão de organizações |
+| `financial`          | Módulo financeiro |
+| `financialAnalytics` | Analytics financeiro |
+| `crm`                | Módulo CRM |
+| `crmAnalytics`       | Analytics CRM |
+| `crmAssignment`      | Atribuição de leads |
+| `inventory`          | Módulo estoque |
+| `inventoryAnalytics` | Analytics estoque |
+| `inventoryBarcode`   | Gestão barcode/SKU |
+| `dashboardWidgets`   | Widgets customizáveis |
+| `admin`              | Painel administrativo |
 
 ## 📝 Scripts Disponíveis
 
 ```bash
-# Com pnpm (recomendado)
 pnpm run dev           # Iniciar servidor de desenvolvimento
 pnpm run build         # Build para produção
 pnpm run start         # Iniciar servidor de produção
 pnpm run check         # Verificar tipos TypeScript
-pnpm run format        # Formatar código
 pnpm run test          # Executar testes
 pnpm run db:push       # Aplicar migrações do banco
-
-# Com npm (alternativa)
-npm run dev --legacy-peer-deps
-npm run build --legacy-peer-deps
-npm run start
+pnpm run db:seed       # Criar dados iniciais
+pnpm run db:studio     # Abrir Drizzle Studio
 ```
 
-### ⚙️ Instalação do pnpm
+## 🔧 Variáveis de Ambiente
 
-Se você ainda não tem o pnpm instalado:
-```bash
-npm install -g pnpm
-```
+Veja `.env.example` para a lista completa.
 
-Verifique a instalação:
-```bash
-pnpm --version
-```
+### Obrigatórias
 
-## 🚀 Deploy em Produção
-
-### Variáveis de Ambiente Necessárias
 ```env
-DATABASE_URL=mysql://user:password@host:3306/smartops
-NODE_ENV=production
-MANUS_OAUTH_ID=seu_id_oauth
-MANUS_OAUTH_SECRET=seu_secret_oauth
-OWNER_OPEN_ID=seu_open_id
-STRIPE_SECRET_KEY=sua_chave_stripe
+DATABASE_URL=postgresql://smartops:SmartOps@2026!@localhost:5432/smartops
+JWT_SECRET=min-32-chars-secret
 ```
 
-### Com Docker
-```bash
-docker build -t smartops:latest .
-docker run -p 3000:3000 \
-  -e DATABASE_URL=mysql://... \
-  -e NODE_ENV=production \
-  smartops:latest
+### Opcionais
+
+```env
+VITE_APP_ID=         # OAuth Manus App ID
+OAUTH_SERVER_URL=    # OAuth Server URL
+STRIPE_SECRET_KEY=   # Stripe (pagamentos)
+AWS_ACCESS_KEY_ID=   # S3 (arquivos)
+SMTP_HOST=           # Email (notificações)
 ```
-
-### Com Vercel/Netlify
-1. Conecte o repositório
-2. Configure as variáveis de ambiente
-3. Deploy automático em cada push
-
-## 📞 Suporte
-
-Para dúvidas ou problemas, abra uma issue no repositório.
-
-## 📄 Licença
-
-MIT
 
 ## 🎯 Roadmap
 
 - [ ] Integração com Stripe para pagamentos
-- [ ] Landing page e website
+- [ ] CI/CD com GitHub Actions
 - [ ] Autenticação com 2FA
-- [ ] API REST adicional
 - [ ] Mobile app (React Native)
-- [ ] Webhooks customizáveis
-- [ ] Integração com APIs externas
 - [ ] Relatórios em PDF/Excel
 - [ ] Notificações por email
-- [ ] Backup automático
 
 ---
 
-**Desenvolvido com ❤️ usando React, TypeScript e tRPC**
+**Desenvolvido com React, TypeScript, tRPC e PostgreSQL**

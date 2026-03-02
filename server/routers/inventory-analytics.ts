@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getDb } from "../db";
 import { eq, and, desc } from "drizzle-orm";
 import {
-  products,
+  products as productsTable,
   inventoryMovements,
   stockAlerts,
 } from "../../drizzle/schema";
@@ -31,21 +31,17 @@ export const inventoryAnalyticsRouter = router({
         );
         if (!hasAccess) throw new Error("Module not accessible");
 
-        let query = db
+        // Build where conditions
+        const conditions = [
+          eq(productsTable.tenantId, ctx.user.tenantId),
+          eq(productsTable.status, "active"),
+          ...(input.category ? [eq(productsTable.category, input.category)] : []),
+        ];
+
+        const allProducts = await db
           .select()
-          .from(products)
-          .where(
-            and(
-              eq(products.tenantId, ctx.user.tenantId),
-              eq(products.status, "active")
-            )
-          );
-
-        if (input.category) {
-          query = query.where(eq(products.category, input.category));
-        }
-
-        const allProducts = await query;
+          .from(productsTable)
+          .where(and(...conditions));
 
         // Calculate metrics
         const totalProducts = allProducts.length;
@@ -66,12 +62,12 @@ export const inventoryAnalyticsRouter = router({
         const categoryBreakdown: Record<string, { count: number; value: number }> = {};
 
         allProducts.forEach((p) => {
-          const cat = p.category || "Uncategorized";
+          const cat = p.category || "Sem categoria";
           if (!categoryBreakdown[cat]) {
             categoryBreakdown[cat] = { count: 0, value: 0 };
           }
-          categoryBreakdown[cat].count += 1;
-          categoryBreakdown[cat].value += parseFloat(p.unitPrice as any) * (p.quantity ?? 0);
+          categoryBreakdown[cat]!.count += 1;
+          categoryBreakdown[cat]!.value += parseFloat(p.unitPrice as any) * (p.quantity ?? 0);
         });
 
         return {
@@ -123,16 +119,16 @@ export const inventoryAnalyticsRouter = router({
         );
         if (!hasAccess) throw new Error("Module not accessible");
 
-        let query = db
+        // Build where conditions
+        const conditions = [
+          eq(inventoryMovements.tenantId, ctx.user.tenantId),
+          ...(input.productId ? [eq(inventoryMovements.productId, input.productId)] : []),
+        ];
+
+        const movements = await db
           .select()
           .from(inventoryMovements)
-          .where(eq(inventoryMovements.tenantId, ctx.user.tenantId));
-
-        if (input.productId) {
-          query = query.where(eq(inventoryMovements.productId, input.productId));
-        }
-
-        const movements = await query
+          .where(and(...conditions))
           .orderBy(desc(inventoryMovements.createdAt))
           .limit(input.limit);
 
@@ -147,9 +143,11 @@ export const inventoryAnalyticsRouter = router({
         const movementReasons: Record<string, number> = {};
 
         movements.forEach((m) => {
-          movementTypes[m.type]++;
+          if (movementTypes[m.type] !== undefined) {
+            movementTypes[m.type]!++;
+          }
           if (m.reason) {
-            movementReasons[m.reason] = (movementReasons[m.reason] || 0) + 1;
+            movementReasons[m.reason] = (movementReasons[m.reason] ?? 0) + 1;
           }
         });
 
@@ -211,7 +209,9 @@ export const inventoryAnalyticsRouter = router({
       };
 
       activeAlerts.forEach((a) => {
-        alertsByType[a.alertType]++;
+        if (alertsByType[a.alertType] !== undefined) {
+          alertsByType[a.alertType]!++;
+        }
       });
 
       return {
@@ -219,9 +219,9 @@ export const inventoryAnalyticsRouter = router({
         activeAlerts: activeAlerts.length,
         resolvedAlerts: resolvedAlerts.length,
         alertsByType,
-        recentAlerts: activeAlerts.sort((a, b) => 
-          b.createdAt.getTime() - a.createdAt.getTime()
-        ).slice(0, 10),
+        recentAlerts: activeAlerts
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+          .slice(0, 10),
       };
     } catch (error) {
       console.error("[Inventory Analytics] Error getting stock alerts summary:", error);
@@ -252,18 +252,18 @@ export const inventoryAnalyticsRouter = router({
 
         const startDate = new Date(Date.now() - input.days * 24 * 60 * 60 * 1000);
 
-        const products = await db
+        const allProducts = await db
           .select()
-          .from(products)
+          .from(productsTable)
           .where(
             and(
-              eq(products.tenantId, ctx.user.tenantId),
-              eq(products.status, "active")
+              eq(productsTable.tenantId, ctx.user.tenantId),
+              eq(productsTable.status, "active")
             )
           );
 
         const turnoverData = await Promise.all(
-          products.map(async (product) => {
+          allProducts.map(async (product) => {
             const movements = await db
               .select()
               .from(inventoryMovements)
