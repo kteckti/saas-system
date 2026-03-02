@@ -32,17 +32,19 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   try {
     const values: InsertUser = {
       openId: user.openId,
+      tenantId: user.tenantId || "default",
+      email: user.email || "",
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["name", "email"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
       const value = user[field];
       if (value === undefined) return;
       const normalized = value ?? null;
-      values[field] = normalized;
+      (values as any)[field] = normalized;
       updateSet[field] = normalized;
     };
 
@@ -53,11 +55,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = user.lastSignedIn;
     }
     if (user.role !== undefined) {
-      values.role = user.role;
+      (values as any).role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      (values as any).role = 'owner';
+      updateSet.role = 'owner';
     }
 
     if (!values.lastSignedIn) {
