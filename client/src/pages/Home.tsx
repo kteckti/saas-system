@@ -1,7 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
 import { ArrowRight, CheckCircle, Zap, Users, BarChart3, Lock } from "lucide-react";
 import { useEffect } from "react";
 
@@ -41,16 +40,10 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              variant="outline"
               onClick={() => navigate("/login")}
-            >
-              Login com Email
-            </Button>
-            <Button
-              onClick={() => (window.location.href = getLoginUrl())}
               variant="default"
             >
-              Entrar com OAuth
+              Acessar Plataforma
             </Button>
           </div>
         </div>
@@ -78,13 +71,6 @@ export default function Home() {
               className="shadow-lg hover:shadow-xl transition-all"
             >
               Começar Agora <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => (window.location.href = getLoginUrl())}
-            >
-              Entrar com OAuth
             </Button>
           </div>
 

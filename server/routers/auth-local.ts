@@ -1,7 +1,7 @@
 /**
  * Local Authentication Router
  * Handles email/password login as an alternative to OAuth
- * The admin user (kteckti@gmail.com) uses this authentication method
+ * The admin user uses this authentication method
  */
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
@@ -14,6 +14,22 @@ import { getSessionCookieOptions } from "../_core/cookies";
 import bcrypt from "bcryptjs";
 
 export const authLocalRouter = router({
+  /**
+   * Get current authenticated user
+   */
+  me: publicProcedure.query((opts) => opts.ctx.user),
+
+  /**
+   * Logout current user
+   */
+  logout: publicProcedure.mutation(({ ctx }) => {
+    const cookieOptions = getSessionCookieOptions(ctx.req);
+    ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+    return {
+      success: true,
+    } as const;
+  }),
+
   /**
    * Login with email and password
    * Returns a session token stored as a cookie
@@ -37,7 +53,7 @@ export const authLocalRouter = router({
       }
 
       if (!user.passwordHash) {
-        throw new Error("Este usuário não possui senha local configurada. Use o login OAuth.");
+        throw new Error("Este usuário não possui senha configurada.");
       }
 
       // Verify password
@@ -108,7 +124,7 @@ export const authLocalRouter = router({
         .limit(1);
 
       if (!user.length || !user[0]!.passwordHash) {
-        throw new Error("Usuário não possui senha local configurada");
+        throw new Error("Usuário não possui senha configurada");
       }
 
       const isValid = await bcrypt.compare(input.currentPassword, user[0]!.passwordHash);

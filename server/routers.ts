@@ -1,7 +1,7 @@
 import { systemRouter } from "./_core/systemRouter";
 import { router } from "./_core/trpc";
-import { authRouter } from "./routers/auth";
 import { authLocalRouter } from "./routers/auth-local";
+import { rbacRouter } from "./routers/auth";
 import { organizationsRouter } from "./routers/organizations";
 import { financialRouter } from "./routers/financial";
 import { crmRouter } from "./routers/crm";
@@ -16,8 +16,8 @@ import { dashboardWidgetsRouter } from "./routers/dashboard-widgets";
 
 export const appRouter = router({
   system: systemRouter,
-  auth: authRouter,
   authLocal: authLocalRouter,
+  auth: rbacRouter, // O frontend vai procurar as permissões aqui!
   organizations: organizationsRouter,
   financial: financialRouter,
   crm: crmRouter,
@@ -33,10 +33,9 @@ export const appRouter = router({
 
 export type AppRouter = typeof appRouter;
 
-// Export routers for potential direct usage
 export {
-  authRouter,
   authLocalRouter,
+  rbacRouter,
   organizationsRouter,
   financialRouter,
   crmRouter,

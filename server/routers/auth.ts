@@ -1,23 +1,11 @@
-import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
+import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
 import { eq, and } from "drizzle-orm";
-import { users, organizations, tenantModules, modules } from "../../drizzle/schema";
+import { users, organizations } from "../../drizzle/schema";
 import { canAccessModule, getTenantModules, isOrganizationOwner } from "../rbac";
-import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "../_core/cookies";
 
-export const authRouter = router({
-  me: publicProcedure.query((opts) => opts.ctx.user),
-
-  logout: publicProcedure.mutation(({ ctx }) => {
-    const cookieOptions = getSessionCookieOptions(ctx.req);
-    ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-    return {
-      success: true,
-    } as const;
-  }),
-
+export const rbacRouter = router({
   /**
    * Get current user's organization and active modules
    */
@@ -48,14 +36,12 @@ export const authRouter = router({
 
   /**
    * Get all users in the current organization
-   * Only accessible by owner or admin
    */
   getOrganizationUsers: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) return [];
 
     try {
-      // Check if user is owner or admin
       const isOwner = await isOrganizationOwner(ctx.user.id, ctx.user.tenantId);
       if (!isOwner && ctx.user.role !== "admin") {
         throw new Error("Unauthorized");
@@ -80,9 +66,6 @@ export const authRouter = router({
     }
   }),
 
-  /**
-   * Update user role (owner/admin only)
-   */
   updateUserRole: protectedProcedure
     .input(
       z.object({
@@ -95,13 +78,11 @@ export const authRouter = router({
       if (!db) throw new Error("Database not available");
 
       try {
-        // Check if user is owner
         const isOwner = await isOrganizationOwner(ctx.user.id, ctx.user.tenantId);
         if (!isOwner) {
           throw new Error("Only organization owner can update user roles");
         }
 
-        // Verify target user belongs to same organization
         const targetUser = await db
           .select()
           .from(users)
@@ -117,7 +98,6 @@ export const authRouter = router({
           throw new Error("User not found in organization");
         }
 
-        // Update user role
         await db
           .update(users)
           .set({ role: input.role })
@@ -130,9 +110,6 @@ export const authRouter = router({
       }
     }),
 
-  /**
-   * Check if user can access a specific module
-   */
   canAccessModule: protectedProcedure
     .input(
       z.object({
@@ -148,16 +125,10 @@ export const authRouter = router({
       return { hasAccess };
     }),
 
-  /**
-   * Get active modules for current tenant
-   */
   getActiveModules: protectedProcedure.query(async ({ ctx }) => {
     return await getTenantModules(ctx.user.tenantId);
   }),
 
-  /**
-   * Verify multi-tenant isolation
-   */
   verifyTenantAccess: protectedProcedure
     .input(
       z.object({
